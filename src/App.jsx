@@ -1,11 +1,11 @@
 // Root application component — foundation for the Paronia landing page.
-// HeroSection and CryptoCarousel are above the fold and stay eager so the
+// Hero and CryptoCarousel are above the fold and stay eager so the
 // initial paint is fast. Below-the-fold sections (MarketTrendTable,
 // QuickTransferPreview, Footer) are code-split via React.lazy and streamed in
 // with Suspense fallbacks, guarded by an ErrorBoundary so a failed chunk load
 // degrades gracefully instead of blanking the page.
 import { lazy, Suspense } from 'react';
-import HeroSection from './components/HeroSection.jsx';
+import Hero from './components/Hero.tsx';
 import CryptoCarousel from './components/CryptoCarousel.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 
@@ -25,7 +25,7 @@ function SectionFallback() {
 export default function App() {
   return (
     <div className="min-h-screen bg-background text-white">
-      <HeroSection />
+      <Hero />
       <CryptoCarousel />
       <ErrorBoundary>
         <Suspense fallback={<SectionFallback />}>
