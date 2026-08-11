@@ -1,0 +1,147 @@
+================================================================================
+CSS CASCADE & SPECIFICITY ANALYSIS — Hero Section
+Task: Diagnostic Investigation — Hero Section Redesign Changes Not Rendering
+Date: 2026-08-11
+Confidence: Very High
+================================================================================
+
+SPECIFICITY NOTATION
+--------------------
+Specificity is written as a 4-tuple (a, b, c, d):
+  a = inline style attribute (1 if present)
+  b = number of ID selectors (#id)
+  c = number of class / attribute / pseudo-class selectors (.class, [attr], :hover)
+  d = number of type / element / pseudo-element selectors (div, ::before)
+Higher tuples win; ties are broken by source order (later wins) and by @layer /
+!important. Tailwind utilities are normal single-class selectors → (0,0,1,0).
+
+
+================================================================================
+HEADLINE FINDING (READ FIRST)
+================================================================================
+There is **NO live specificity conflict** for the hero.
+
+The task hypothesis was: "a higher-specificity global/Tailwind rule is overriding
+the redesign's hero rules." Investigation disproves this. The redesigned selectors
+(.hero, .hero__headline, .hero__cta, ...) are defined in src/styles/hero.css, which
+is imported ONLY by src/components/Hero.tsx (Hero.tsx:33). Hero.tsx is never
+imported by any module (App.jsx renders HeroSection.jsx instead), so:
+
+  - hero.css is tree-shaken out of the Vite/Rollup build,
+  - the redesign's rules NEVER enter the document's stylesheet set,
+  - therefore they are not part of any cascade and cannot be "overridden."
+
+A rule cannot lose a cascade it never joined. The cause is a disconnected render
+tree (dead code), not specificity. Full write-up: diagnostic-report.md.
+
+Confirmed in compiled output:
+  grep -rl "hero__"          dist/  -> NO MATCHES  (redesign CSS absent)
+  grep -rl "gradient-start"  dist/  -> MATCHES     (legacy CSS shipped)
+  grep -rl "animate-blob"    dist/  -> MATCHES     (legacy CSS shipped)
+
+The remainder of this document (A) accounts for the specificity of the rules that
+ARE live (the legacy HeroSection), and (B) accounts for the specificity the
+redesign WOULD have once wired in, to prove no conflict will emerge after the fix.
+
+
+================================================================================
+A. RULES CURRENTLY IN THE CASCADE  (rendered = HeroSection.jsx)
+================================================================================
+HeroSection.jsx styles the hero entirely with Tailwind utility classes plus a few
+project keyframe utilities. All are single-class selectors emitted into the
+Tailwind layer of dist/assets/index-*.css. Listed in cascade order (source order
+within the same specificity), most relevant to the "gradient/blob" symptom:
+
+  # | Selector (as authored)                 | Origin                 | Specificity | Declares
+  --+----------------------------------------+------------------------+-------------+-----------------------------
+  1 | .relative                              | Tailwind base utility  | (0,0,1,0)   | position: relative
+  2 | .grid                                  | Tailwind utility       | (0,0,1,0)   | display: grid
+  3 | .min-h-screen                          | Tailwind utility       | (0,0,1,0)   | min-height: 100vh
+  4 | .grid-cols-1                           | Tailwind utility       | (0,0,1,0)   | grid-template-columns: 1fr
+  5 | .lg\:grid-cols-2 (@media >=1024px)     | Tailwind utility       | (0,0,1,0)   | grid-template-columns: 1fr 1fr
+  6 | .bg-gradient-to-br                     | Tailwind utility       | (0,0,1,0)   | background-image: linear-gradient(to bottom right,var(--tw-gradient-stops))
+  7 | .from-gradient-start                   | Tailwind utility       | (0,0,1,0)   | --tw-gradient-from: #9333EA ...
+  8 | .to-gradient-end                       | Tailwind utility       | (0,0,1,0)   | --tw-gradient-to: #F97316
+  9 | .bg-purple-400\/30                      | Tailwind utility       | (0,0,1,0)   | background-color: rgb(192 132 252/.3)
+ 10 | .animate-blob                          | Tailwind (project ext) | (0,0,1,0)   | animation: blob ...
+ 11 | .blur-3xl                              | Tailwind utility       | (0,0,1,0)   | --tw-blur: blur(64px)
+ 12 | .mix-blend-multiply                    | Tailwind utility       | (0,0,1,0)   | mix-blend-mode: multiply
+ 13 | .animation-delay-2000 / -4000         | project utility        | (0,0,1,0)   | animation-delay: 2s / 4s
+
+WINNING RULES FOR THE VISIBLE SYMPTOM
+  - Gradient background on the hero content column: rules #6/#7/#8 win because they
+    are the only rules setting background-image / gradient stops on that element.
+    Specificity (0,0,1,0) each; no competitor targets the same element, so they
+    apply unopposed. THIS is why the user still sees a gradient (TASK-007 "remove
+    gradient" appears to have "no effect").
+  - Two-column split at >=1024px: rule #5 .lg:grid-cols-2 wins at desktop widths.
+  - Animated color blobs: rules #9-#13 apply to the three aria-hidden blob <div>s.
+
+There is no override battle here — each property is set by exactly one utility.
+The "flat design" the user expects is simply not present in this component.
+
+
+================================================================================
+B. RULES THE REDESIGN WOULD ADD  (hero.css — currently NOT in the cascade)
+================================================================================
+When Hero.tsx is wired in (see remediation-steps.md, Step 1), these semantic
+class selectors from src/styles/hero.css enter the cascade. Specificity:
+
+  Selector                | Specificity | Notes
+  ------------------------+-------------+--------------------------------------------
+  .hero                   | (0,0,1,0)   | grid shell; background-color: var(--color-bg-hero)
+  .hero__content          | (0,0,1,0)   | flex column
+  .hero__eyebrow          | (0,0,1,0)   | overline label
+  .hero__headline         | (0,0,1,0)   | tier-1 headline (also has id #hero-headline in markup)
+  #hero-headline          | (0,1,0,0)   | id present on the <h1> element (not used as a style hook)
+  .hero__subheadline      | (0,0,1,0)   | tier-2 subheadline
+  .hero__cta              | (0,0,1,0)   | CTA button
+  .touch-target-44        | (0,0,1,0)   | responsive-utils.css — 44x44 min tap area
+  .animate-fade-in-up     | (0,0,1,0)   | animations.css — entrance
+  .animation-delay-150/300| (0,0,1,0)   | animations.css — stagger
+
+CROSS-STYLESHEET CHECK (will there be a conflict AFTER wiring in?)
+  - hero.css uses a dedicated "hero__" BEM-style namespace. Grepping the codebase,
+    no OTHER stylesheet (index.css / globals.css / design-tokens.css) defines a
+    ".hero" or ".hero__*" selector. So there is no same-name collision.
+  - All hero.css selectors are single-class (0,0,1,0). Tailwind utilities are also
+    (0,0,1,0). If both a hero__ class AND a Tailwind utility ever targeted the SAME
+    element and SAME property, source order would decide. In the redesigned Hero.tsx
+    the elements carry ONLY hero__ classes for layout/color (Tailwind utilities are
+    not mixed onto them), so no same-element/same-property tie exists.
+  - The lone #hero-headline id (0,1,0,0) outranks any class, but no rule uses it as
+    a style selector (it exists for aria-labelledby), so it introduces no override.
+
+CONCLUSION FOR (B): once wired in, hero.css applies cleanly. No specificity
+adjustment is required. The redesign fails today purely because its stylesheet is
+absent from the build, not because it loses a cascade.
+
+
+================================================================================
+C. RECOMMENDATIONS
+================================================================================
+Because the defect is dead-code / wiring, the fix is NOT a specificity change.
+Primary fix (see remediation-steps.md):
+  1. Render Hero (hero.css) instead of HeroSection in src/App.jsx. This alone
+     brings the redesigned rules into the cascade and makes them apply.
+  2. Delete the legacy HeroSection.jsx so its Tailwind gradient/blob utilities stop
+     being emitted into index.css.
+
+Cascade-architecture guidance (defense-in-depth, optional):
+  - Keep the "hero__" namespace exclusive to hero.css (already the case) so hero
+    styling never competes with Tailwind utilities at equal specificity.
+  - If Tailwind utilities are later added onto hero elements, adopt CSS Cascade
+    Layers to make precedence explicit and order-independent, e.g.:
+        @layer base, components, utilities;
+        @layer components { /* hero.css */ }
+    Utilities layer intentionally wins over components; authoring hero.css in the
+    components layer keeps design-token styling predictable.
+  - Alternatively convert hero.css to a CSS Module (hero.module.css) to guarantee
+    class-name isolation. Not required here — the BEM namespace already prevents
+    collisions — but it removes any future global-name risk.
+  - Do NOT reach for !important or artificial specificity inflation; there is no
+    real conflict to out-rank, and doing so would only mask the true wiring defect.
+
+================================================================================
+END OF ANALYSIS
+================================================================================
