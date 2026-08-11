@@ -1,5 +1,5 @@
 /* =============================================================================
- * Hero Section Styles — Visual Hierarchy & Layout
+ * Hero Section Styles — Responsive Behavior & Mobile Optimization
  * -----------------------------------------------------------------------------
  * Consumes the shared design tokens for color, typography, and spacing. Builds
  * a balanced, grid-based hero with a three-tier hierarchy:
@@ -7,32 +7,42 @@
  *   2. Subheadline(--font-size-hero-subtitle)
  *   3. CTA button (--font-size-cta)
  *
- * Spacing uses the 8px baseline grid. Contrast ratios are documented inline and
- * meet WCAG 2.1 AA (4.5:1 for body text, 3:1 for large/bold text).
+ * Authored mobile-first: the base rules target the smallest viewport (a single
+ * vertical stack), then min-width media queries progressively enhance the
+ * layout, typography, and spacing for tablet (≥768px), desktop (≥1024px), and
+ * ultra-wide (≥1440px). Spacing uses the 8px baseline grid and fluid tokens.
+ * The CTA keeps a ≥44×44px touch target on mobile. Contrast ratios are
+ * documented inline and meet WCAG 2.1 AA (4.5:1 body, 3:1 large/bold text).
  * ========================================================================== */
 
 @import './design-tokens.css';
 
-/* Layout shell ------------------------------------------------------------- */
+/* Layout shell — MOBILE FIRST (base) --------------------------------------- *
+ * Vertical stack: content on top, media below. Compact section padding and a
+ * gradient tuned for a tall/portrait aspect ratio. */
 .hero {
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
-  gap: var(--space-2xl);
+  gap: var(--space-fluid-lg);
   min-height: 100vh;
-  padding: var(--space-2xl) var(--space-lg);
-  /* Gradient backdrop with a dark base for readability. The layered dark
-     overlay keeps text contrast high over the vivid brand gradient. */
+  /* Dynamic viewport height avoids the mobile browser URL-bar jump when
+     supported, falling back to the 100vh above otherwise. */
+  min-height: 100svh;
+  padding: var(--space-section) var(--space-gutter);
   background-color: var(--color-bg-hero);
+  /* Portrait-friendly gradient: vertical flow keeps the vivid brand color at
+     the bottom where the media sits, with a dark base preserving text
+     contrast at the top. */
   background-image:
     linear-gradient(
-      135deg,
-      rgba(28, 24, 48, 0.92) 0%,
-      rgba(43, 38, 64, 0.82) 55%,
-      rgba(147, 51, 234, 0.28) 100%
+      180deg,
+      rgba(28, 24, 48, 0.94) 0%,
+      rgba(43, 38, 64, 0.85) 55%,
+      rgba(147, 51, 234, 0.3) 100%
     ),
     radial-gradient(
-      120% 120% at 15% 20%,
+      140% 90% at 50% 0%,
       rgba(168, 85, 247, 0.22) 0%,
       transparent 60%
     );
@@ -41,28 +51,22 @@
   overflow: hidden;
 }
 
-/* On wider viewports, balance content against breathing room / media. */
-@media (min-width: 1024px) {
-  .hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    padding: var(--space-2xl) var(--space-2xl);
-  }
-}
-
 /* Content column ----------------------------------------------------------- */
 .hero__content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-md);
-  max-width: 36rem;
+  /* Full width on mobile; capped further up so line length stays comfortable. */
+  width: 100%;
+  max-width: 100%;
   z-index: 1;
 }
 
 /* Tier 0 — eyebrow / overline label */
 .hero__eyebrow {
   margin: 0;
-  font-size: var(--font-size-eyebrow);
+  font-size: var(--font-size-eyebrow-clamp);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-eyebrow);
@@ -74,7 +78,9 @@
 /* Tier 1 — primary headline */
 .hero__headline {
   margin: 0;
-  font-size: var(--font-size-hero-h1-fluid);
+  /* Fluid clamp(32px → 56px): readable on the smallest phone, commanding on
+     desktop, with no abrupt breakpoint jump. */
+  font-size: var(--font-size-hero-h1-clamp);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-tight);
@@ -86,8 +92,9 @@
 /* Tier 2 — subheadline */
 .hero__subheadline {
   margin: 0;
-  max-width: 32rem;
-  font-size: var(--font-size-hero-subtitle);
+  /* Constrain measure to ~45–75 characters for comfortable reading. */
+  max-width: 60ch;
+  font-size: var(--font-size-hero-subtitle-clamp);
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-relaxed);
   /* #CBD5E1 on dark hero base ≈ 9.4:1 — AAA for body copy. */
@@ -97,15 +104,21 @@
 /* Tier 3 — call to action
  * Interaction polish: a subtly shifting gradient fill, a lift-and-grow on hover
  * (scale 1.05), and a tactile press (scale 0.98) on active. A single
- * `transition: all 250ms ease-out` keeps every interactive state — transform,
- * gradient position, shadow, background — moving in sync. The gradient is sized
- * larger than the button so its position can slide on hover for a soft color
- * shift without a hard background swap. */
+ * `transition: all 250ms ease-out` keeps every interactive state moving in
+ * sync. On mobile the button spans the full width for an easy tap; from tablet
+ * up it shrinks to its intrinsic content width.
+ *
+ * Accessibility: min-height/min-width of 44px plus generous padding guarantee a
+ * ≥44×44px touch target (WCAG 2.5.5). */
 .hero__cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-top: var(--space-xs);
+  /* Full-width, thumb-friendly tap target on mobile. */
+  width: 100%;
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
   padding: var(--space-sm) var(--space-xl);
   border: 0;
   border-radius: var(--radius-pill);
@@ -122,7 +135,7 @@
   background-position: 0% 50%;
   color: var(--color-cta-text);
   font-family: inherit;
-  font-size: var(--font-size-cta);
+  font-size: var(--font-size-cta-clamp);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   cursor: pointer;
@@ -154,7 +167,8 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 18rem;
+  /* Smaller footprint on mobile so the copy and CTA stay above the fold. */
+  min-height: 14rem;
   border-radius: var(--radius-md);
   overflow: hidden;
   z-index: 1;
@@ -165,6 +179,87 @@
   height: 100%;
   object-fit: cover;
   border-radius: var(--radius-md);
+}
+
+/* =============================================================================
+ * TABLET — ≥768px
+ * Larger media, roomier gaps, CTA shrinks to content width, wider measure.
+ * ========================================================================== */
+@media (min-width: 768px) {
+  .hero {
+    gap: var(--space-fluid-xl);
+  }
+
+  .hero__content {
+    /* Cap the column so headings and body copy keep a balanced measure. */
+    max-width: 40rem;
+    gap: var(--space-lg);
+  }
+
+  .hero__cta {
+    /* Intrinsic width from tablet up; still ≥44px tall for touch. */
+    width: auto;
+  }
+
+  .hero__media {
+    min-height: 22rem;
+  }
+}
+
+/* =============================================================================
+ * DESKTOP — ≥1024px
+ * Switch from a vertical stack to a two-column split-screen: content left,
+ * media right. Rebalance the gradient for a landscape aspect ratio.
+ * ========================================================================== */
+@media (min-width: 1024px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: center;
+    /* Landscape gradient: diagonal flow pushes the brand color toward the
+       media side (right/bottom) while text on the left stays high-contrast. */
+    background-image:
+      linear-gradient(
+        135deg,
+        rgba(28, 24, 48, 0.94) 0%,
+        rgba(43, 38, 64, 0.84) 55%,
+        rgba(147, 51, 234, 0.3) 100%
+      ),
+      radial-gradient(
+        120% 120% at 15% 20%,
+        rgba(168, 85, 247, 0.22) 0%,
+        transparent 60%
+      );
+  }
+
+  .hero__content {
+    max-width: 36rem;
+  }
+
+  .hero__media {
+    min-height: 26rem;
+  }
+}
+
+/* =============================================================================
+ * ULTRA-WIDE — ≥1440px
+ * Center the whole hero within a max content width and open up spacing so the
+ * layout doesn't stretch uncomfortably on large desktops.
+ * ========================================================================== */
+@media (min-width: 1440px) {
+  .hero {
+    max-width: 1440px;
+    margin-inline: auto;
+    gap: var(--space-2xl);
+    padding-block: var(--space-section);
+  }
+
+  .hero__content {
+    max-width: 40rem;
+  }
+
+  .hero__media {
+    min-height: 32rem;
+  }
 }
 
 /* Motion safety ------------------------------------------------------------ */

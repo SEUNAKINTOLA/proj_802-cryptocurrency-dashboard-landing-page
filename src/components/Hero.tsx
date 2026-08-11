@@ -16,9 +16,17 @@
 // the animation classes once JS has mounted, so content is never hidden if
 // scripts fail to load. Motion is disabled automatically for users who prefer
 // reduced motion (handled in the stylesheet).
+//
+// Responsive behavior: the layout is authored mobile-first in `hero.css` — a
+// single vertical stack on phones that becomes a split-screen at ≥1024px. The
+// CTA carries the `touch-target-44` utility to guarantee a ≥44×44px tap area,
+// and the hero imagery is served through a <picture> element so mobile devices
+// download a smaller asset than desktop. Shared responsive helpers live in
+// `responsive-utils.css`.
 import { useEffect, useState } from 'react';
 import '../styles/animations.css';
 import '../styles/hero.css';
+import '../styles/responsive-utils.css';
 
 // Join truthy class names, dropping the empty strings produced before mount.
 function cx(...names: Array<string | false | undefined>): string {
@@ -66,7 +74,7 @@ export default function Hero() {
 
         <button
           type="button"
-          className={cx('hero__cta', reveal('animation-delay-300'))}
+          className={cx('hero__cta', 'touch-target-44', reveal('animation-delay-300'))}
           aria-label="Learn more about Paronia"
         >
           Learn More
@@ -78,14 +86,27 @@ export default function Hero() {
         role="img"
         aria-label="3D geometric blockchain illustration"
       >
-        <img
-          src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=800"
-          alt=""
-          width="800"
-          height="800"
-          loading="lazy"
-          decoding="async"
-        />
+        {/* Responsive imagery: the <picture> element lets the browser pick the
+            smallest adequate asset for the viewport — a lighter crop on phones,
+            a larger one on desktop — improving mobile load performance. */}
+        <picture>
+          <source
+            media="(min-width: 1024px)"
+            srcSet="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=800&fit=crop&auto=format 800w"
+          />
+          <source
+            media="(min-width: 768px)"
+            srcSet="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=600&fit=crop&auto=format 600w"
+          />
+          <img
+            src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=400&fit=crop&auto=format"
+            alt=""
+            width="800"
+            height="800"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </div>
     </section>
   );
