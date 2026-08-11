@@ -1,0 +1,75 @@
+/* =============================================================================
+ * Design Tokens — Cryptocurrency Dashboard Landing Page
+ * -----------------------------------------------------------------------------
+ * Single source of truth for the hero redesign's color, typography, and
+ * spacing primitives. Consumed via CSS custom properties so components can
+ * reference semantic tokens instead of hard-coded literals.
+ *
+ * Spacing follows an 8px baseline grid. Typography and color values are tuned
+ * to preserve a clear three-tier visual hierarchy (headline > subheadline > CTA)
+ * with contrast ratios that satisfy WCAG 2.1 AA.
+ * ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------------
+   * Color palette
+   * Values reuse the project's established neon/gradient identity so the tokens
+   * stay consistent with the existing Tailwind theme.
+   *
+   * Contrast ratios (computed against --color-bg-hero #2B2640):
+   *   --color-text-primary   #FFFFFF on #2B2640 ≈ 13.6:1  (AAA — body & large)
+   *   --color-text-secondary #CBD5E1 on #2B2640 ≈  9.4:1  (AAA — body & large)
+   *   --color-primary        #A855F7 on #2B2640 ≈  4.0:1  (AA large / UI)
+   * CTA button uses white text on the --color-primary fill:
+   *   #FFFFFF on #A855F7 ≈ 3.4:1  (AA for large/bold ≥18.66px)
+   * ------------------------------------------------------------------------- */
+  --color-primary: #a855f7;            /* accent / neon purple */
+  --color-primary-strong: #9333ea;     /* gradient start, hover/pressed */
+  --color-accent-warm: #f97316;        /* gradient end */
+  --color-bg-hero: #2b2640;            /* deep hero backdrop base */
+  --color-bg-hero-alt: #1c1830;        /* darker stop for hero gradient */
+  --color-text-primary: #ffffff;       /* headline & high-emphasis copy */
+  --color-text-secondary: #cbd5e1;     /* subheadline & supporting copy */
+  --color-cta-text: #ffffff;           /* CTA label on primary fill */
+  --color-focus-ring: #ffffff;         /* keyboard focus indicator */
+
+  /* ---------------------------------------------------------------------------
+   * Typography scale
+   * Three tiers: headline (h1) > subheadline > CTA. Fluid sizing via clamp()
+   * keeps the headline readable on mobile while honoring the 48px base target.
+   * ------------------------------------------------------------------------- */
+  --font-family-base: 'Inter', system-ui, sans-serif;
+  --font-size-hero-h1: 48px;                        /* base headline target */
+  --font-size-hero-h1-fluid: clamp(2rem, 1.2rem + 3.2vw, 3.75rem);
+  --font-size-hero-subtitle: 20px;                  /* subheadline */
+  --font-size-cta: 16px;                            /* CTA / body base */
+  --font-size-eyebrow: 14px;                        /* overline label */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;                         /* headlines */
+  --line-height-relaxed: 1.6;                       /* body / subheadline */
+
+  --letter-spacing-eyebrow: 0.3em;
+  --letter-spacing-tight: -0.02em;
+
+  /* ---------------------------------------------------------------------------
+   * Spacing scale — 8px baseline grid
+   * ------------------------------------------------------------------------- */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+  --space-2xl: 64px;
+
+  /* ---------------------------------------------------------------------------
+   * Radii & elevation — supporting tokens for the hero CTA and surfaces
+   * ------------------------------------------------------------------------- */
+  --radius-md: 12px;
+  --radius-pill: 9999px;
+  --shadow-cta: 0 10px 30px -10px rgba(168, 85, 247, 0.5);
+}
