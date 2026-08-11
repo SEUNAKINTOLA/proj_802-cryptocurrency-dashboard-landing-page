@@ -3,12 +3,14 @@
 // market trends) will be composed here in subsequent tasks.
 import HeroSection from './components/HeroSection.jsx';
 import CryptoCarousel from './components/CryptoCarousel.jsx';
+import MarketTrendTable from './components/MarketTrendTable.jsx';
 
 export default function App() {
   return (
     <div className="min-h-screen bg-background text-white">
       <HeroSection />
       <CryptoCarousel />
+      <MarketTrendTable />
     </div>
   );
 }
