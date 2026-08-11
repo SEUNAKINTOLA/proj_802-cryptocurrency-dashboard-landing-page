@@ -1,0 +1,65 @@
+/* =============================================================================
+ * Animation Utilities — Entrance Micro-animations
+ * -----------------------------------------------------------------------------
+ * Reusable, performance-minded entrance animations for the hero (and any other
+ * content that opts in). Animations are GPU-friendly — they only touch `opacity`
+ * and `transform` — and are gated behind JS-added classes so content stays fully
+ * visible if scripts fail to load or run.
+ *
+ * Timing is centralized in custom properties so every consumer shares a single
+ * duration/easing and staggering stays consistent. Fully honors the user's
+ * `prefers-reduced-motion` setting.
+ * ========================================================================== */
+
+:root {
+  /* Shared entrance timing tokens. */
+  --animation-duration: 600ms;
+  --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade + rise: opacity 0 → 1 while translating up from 20px to its resting
+   position. Kept to compositor-only properties for smooth 60fps playback. */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Base utility. `both` fill mode applies the initial (hidden) keyframe during
+   any animation-delay as well as persisting the final (visible) state — this
+   prevents delayed, staggered elements from flashing visible before their turn
+   while still ending in the settled, visible state (the `forwards` behavior). */
+.animate-fade-in-up {
+  animation: fadeInUp var(--animation-duration) var(--animation-easing) both;
+  will-change: opacity, transform;
+}
+
+/* Staggering delays — layer alongside `.animate-fade-in-up`. */
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+/* Motion safety — disable entrance motion and free the compositor hint for
+   users who prefer reduced motion. Content settles immediately in its final,
+   visible state. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+    will-change: auto;
+  }
+
+  .animation-delay-150,
+  .animation-delay-300 {
+    animation-delay: 0ms;
+  }
+}
