@@ -5,6 +5,7 @@ import HeroSection from './components/HeroSection.jsx';
 import CryptoCarousel from './components/CryptoCarousel.jsx';
 import MarketTrendTable from './components/MarketTrendTable.jsx';
 import QuickTransferPreview from './components/QuickTransferPreview.jsx';
+import Footer from './components/Footer.jsx';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <CryptoCarousel />
       <MarketTrendTable />
       <QuickTransferPreview />
+      <Footer />
     </div>
   );
 }
