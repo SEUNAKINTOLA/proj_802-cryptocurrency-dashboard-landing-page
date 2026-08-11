@@ -1,0 +1,185 @@
+/* =============================================================================
+ * Responsive Utility Classes
+ * -----------------------------------------------------------------------------
+ * Small, composable helpers for common responsive patterns used across the
+ * landing page: viewport-conditional visibility, breakpoint-aware spacing,
+ * fluid typography, and accessible touch-target sizing.
+ *
+ * Mobile-first: base rules describe the mobile behavior, and min-width media
+ * queries adjust from tablet (≥768px), desktop (≥1024px), and ultra-wide
+ * (≥1440px) up. Breakpoints mirror the tokens in design-tokens.css.
+ *
+ * USAGE — add a class to any element's `class`/`className`:
+ *   <div class="hidden-mobile"> …desktop-only content… </div>
+ *   <section class="mt-mobile-lg mt-desktop-xl"> …stacked, extra top gap… </section>
+ *   <h1 class="text-responsive-h1"> …fluid headline… </h1>
+ *   <button class="touch-target-44"> …guaranteed 44×44px tap area… </button>
+ * ========================================================================== */
+
+@import './design-tokens.css';
+
+/* -----------------------------------------------------------------------------
+ * Responsive visibility
+ * `.hidden-mobile`  — hidden below 768px, shown from tablet up.
+ * `.hidden-desktop` — shown below 1024px, hidden from desktop up.
+ * Use these to swap between stacked mobile UI and split-screen desktop UI.
+ * -------------------------------------------------------------------------- */
+.hidden-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hidden-mobile {
+    display: revert;
+  }
+}
+
+.hidden-desktop {
+  display: revert;
+}
+
+@media (min-width: 1024px) {
+  .hidden-desktop {
+    display: none;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Responsive spacing — top margin
+ * `.mt-mobile-*` set the base (mobile) top margin; `.mt-desktop-*` override it
+ * from desktop (≥1024px) up. Combine one of each on the same element, e.g.
+ * `class="mt-mobile-lg mt-desktop-xl"`. Values map to the 8px baseline grid.
+ * -------------------------------------------------------------------------- */
+.mt-mobile-sm {
+  margin-top: var(--space-sm);
+}
+
+.mt-mobile-md {
+  margin-top: var(--space-md);
+}
+
+.mt-mobile-lg {
+  margin-top: var(--space-lg);
+}
+
+.mt-mobile-xl {
+  margin-top: var(--space-xl);
+}
+
+@media (min-width: 1024px) {
+  .mt-desktop-sm {
+    margin-top: var(--space-sm);
+  }
+
+  .mt-desktop-md {
+    margin-top: var(--space-md);
+  }
+
+  .mt-desktop-lg {
+    margin-top: var(--space-lg);
+  }
+
+  .mt-desktop-xl {
+    margin-top: var(--space-xl);
+  }
+
+  .mt-desktop-2xl {
+    margin-top: var(--space-2xl);
+  }
+}
+
+/* Fluid spacing helpers — grow smoothly with the viewport (no breakpoints). */
+.mt-fluid-md {
+  margin-top: var(--space-fluid-md);
+}
+
+.mt-fluid-lg {
+  margin-top: var(--space-fluid-lg);
+}
+
+.mt-fluid-xl {
+  margin-top: var(--space-fluid-xl);
+}
+
+/* Responsive section padding — vertical rhythm for full-width sections. */
+.section-pad {
+  padding-block: var(--space-section);
+  padding-inline: var(--space-gutter);
+}
+
+/* -----------------------------------------------------------------------------
+ * Responsive typography
+ * Fluid text sizes via clamp() tokens — scale smoothly from mobile to desktop.
+ * -------------------------------------------------------------------------- */
+.text-responsive-h1 {
+  font-size: var(--font-size-hero-h1-clamp);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  text-wrap: balance;
+}
+
+.text-responsive-subtitle {
+  font-size: var(--font-size-hero-subtitle-clamp);
+  line-height: var(--line-height-relaxed);
+  /* Keep the line length within a comfortable 45–75 character measure. */
+  max-width: 65ch;
+}
+
+.text-responsive-body {
+  font-size: var(--font-size-cta-clamp);
+  line-height: var(--line-height-relaxed);
+}
+
+/* -----------------------------------------------------------------------------
+ * Touch-target sizing
+ * `.touch-target-44` guarantees the WCAG 2.5.5 minimum 44×44px interactive
+ * area. Centers its content so icon-only buttons/links remain easy to tap.
+ * -------------------------------------------------------------------------- */
+.touch-target-44 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+}
+
+/* -----------------------------------------------------------------------------
+ * Container query utilities (progressive enhancement)
+ * Where supported, `.cq` establishes an inline-size query container so children
+ * can respond to the container's width rather than the viewport. `.cq-row`
+ * switches from a stacked to a side-by-side layout once its container is wide
+ * enough — useful for components reused at different widths. Falls back to the
+ * stacked base layout when container queries are unavailable.
+ * -------------------------------------------------------------------------- */
+@supports (container-type: inline-size) {
+  .cq {
+    container-type: inline-size;
+  }
+
+  .cq-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  @container (min-width: 480px) {
+    .cq-row {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Motion safety — respect users who prefer reduced motion.
+ * -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
