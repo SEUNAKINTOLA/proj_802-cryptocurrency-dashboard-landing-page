@@ -46,12 +46,17 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Right: 3D geometric illustration */}
-      <div className="relative min-h-[50vh] overflow-hidden lg:min-h-screen">
+      {/* Right: 3D geometric illustration. A gradient placeholder fills the
+          frame while the Unsplash image lazy-loads, preventing a flash of
+          empty space and layout shift. */}
+      <div className="relative min-h-[50vh] overflow-hidden bg-gradient-to-br from-gradient-start to-gradient-end lg:min-h-screen">
         <img
           src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=800"
           alt="3D geometric blockchain illustration"
+          width="800"
+          height="800"
           loading="lazy"
+          decoding="async"
           className="h-full w-full object-cover"
         />
       </div>

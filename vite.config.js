@@ -12,6 +12,34 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Disable source maps in production to shrink the deployed footprint.
+    sourcemap: false,
+    // Aggressive minification with Terser for the smallest possible bundles.
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        passes: 2,
+      },
+      format: {
+        comments: false,
+      },
+    },
+    // Split CSS per async chunk so lazy sections only load their own styles.
+    cssCodeSplit: true,
+    // Inline assets smaller than 4 KB as base64 to save extra requests.
+    assetsInlineLimit: 4096,
+    // Warn earlier so we notice bundles creeping past our performance budget.
+    chunkSizeWarningLimit: 500,
+    rollupOptions: {
+      output: {
+        // Keep the React runtime in a long-lived vendor chunk that browsers
+        // can cache across deploys independently of our app code.
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
   },
 });

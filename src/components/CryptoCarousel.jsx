@@ -7,12 +7,63 @@ import CryptoCard from './CryptoCard.jsx';
 const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,litecoin&vs_currencies=usd&include_24hr_change=true';
 
+// Network reliability tuning for the price fetch.
+const REQUEST_TIMEOUT_MS = 5000;
+const MAX_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 500;
+
 // Maps CoinGecko ids to the display metadata the cards expect.
 const COINS = [
   { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin' },
   { id: 'ethereum', symbol: 'ETH', name: 'Ethereum' },
   { id: 'litecoin', symbol: 'LTC', name: 'Litecoin' },
 ];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Single attempt with an AbortController-backed timeout so a hung request
+// never leaves the carousel spinning forever.
+async function fetchPricesOnce() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(COINGECKO_URL, { signal: controller.signal });
+    if (!response.ok) {
+      const apiError = new Error(
+        `Request failed with status ${response.status}`
+      );
+      apiError.type = 'api';
+      throw apiError;
+    }
+    return await response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+// Classifies a caught error so the UI can show a specific, actionable message.
+function describeError(err) {
+  if (err?.name === 'AbortError') {
+    return {
+      type: 'timeout',
+      message:
+        'Live prices timed out. Check your connection and try again shortly.',
+    };
+  }
+  if (err?.type === 'api') {
+    return {
+      type: 'api',
+      message:
+        'The price service returned an error. Please try again in a moment.',
+    };
+  }
+  return {
+    type: 'network',
+    message:
+      'Unable to reach the price service. Please check your connection and try again later.',
+  };
+}
 
 export default function CryptoCarousel() {
   const [loading, setLoading] = useState(true);
@@ -21,42 +72,52 @@ export default function CryptoCarousel() {
   const [revealed, setRevealed] = useState(false);
   const sectionRef = useRef(null);
 
-  // Fetch live prices once on mount.
+  // Fetch live prices once on mount, retrying transient failures with
+  // exponential backoff before surfacing a typed error message.
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchPrices() {
-      try {
-        const response = await fetch(COINGECKO_URL);
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
-        const data = await response.json();
+    async function loadPrices() {
+      let lastError;
 
-        const mapped = COINS.map((coin) => ({
-          ...coin,
-          price: data[coin.id]?.usd,
-          change24h: data[coin.id]?.usd_24h_change,
-        }));
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+        try {
+          const data = await fetchPricesOnce();
 
-        if (isMounted) {
-          setCryptoData(mapped);
-          setError(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(
-            'Unable to load live cryptocurrency prices right now. Please try again later.'
+          const mapped = COINS.map((coin) => ({
+            ...coin,
+            price: data[coin.id]?.usd,
+            change24h: data[coin.id]?.usd_24h_change,
+          }));
+
+          if (isMounted) {
+            setCryptoData(mapped);
+            setError(null);
+            setLoading(false);
+          }
+          return;
+        } catch (err) {
+          lastError = err;
+          console.error(
+            `CryptoCarousel: price fetch attempt ${attempt + 1} failed`,
+            err
           );
+
+          // Back off before the next attempt (exponential: 500ms, 1000ms, ...).
+          if (attempt < MAX_RETRIES) {
+            await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
+          }
         }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+      }
+
+      // All attempts exhausted — clear loading and show a typed message.
+      if (isMounted) {
+        setError(describeError(lastError).message);
+        setLoading(false);
       }
     }
 
-    fetchPrices();
+    loadPrices();
 
     return () => {
       isMounted = false;
