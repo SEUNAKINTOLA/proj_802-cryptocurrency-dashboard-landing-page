@@ -94,7 +94,13 @@
   color: var(--color-text-secondary);
 }
 
-/* Tier 3 — call to action */
+/* Tier 3 — call to action
+ * Interaction polish: a subtly shifting gradient fill, a lift-and-grow on hover
+ * (scale 1.05), and a tactile press (scale 0.98) on active. A single
+ * `transition: all 250ms ease-out` keeps every interactive state — transform,
+ * gradient position, shadow, background — moving in sync. The gradient is sized
+ * larger than the button so its position can slide on hover for a soft color
+ * shift without a hard background swap. */
 .hero__cta {
   display: inline-flex;
   align-items: center;
@@ -103,8 +109,17 @@
   padding: var(--space-sm) var(--space-xl);
   border: 0;
   border-radius: var(--radius-pill);
+  /* #FFFFFF on #A855F7 ≈ 3.4:1 — AA for large/bold ≥18.66px text. The gradient
+     rides between --color-primary and --color-primary-strong (both ≥ AA large
+     against white), so contrast holds across the shift. */
   background-color: var(--color-primary);
-  /* #FFFFFF on #A855F7 ≈ 3.4:1 — AA for large/bold ≥18.66px text. */
+  background-image: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-strong) 100%
+  );
+  background-size: 150% 150%;
+  background-position: 0% 50%;
   color: var(--color-cta-text);
   font-family: inherit;
   font-size: var(--font-size-cta);
@@ -112,16 +127,19 @@
   line-height: var(--line-height-tight);
   cursor: pointer;
   box-shadow: var(--shadow-cta);
-  transition:
-    transform 0.25s ease,
-    background-color 0.25s ease,
-    box-shadow 0.25s ease;
+  transition: all 250ms ease-out;
 }
 
 .hero__cta:hover {
-  background-color: var(--color-primary-strong);
-  transform: translateY(-2px);
-  box-shadow: 0 16px 36px -12px rgba(168, 85, 247, 0.6);
+  /* Promote to its own compositor layer only while actively animating. */
+  will-change: transform;
+  transform: scale(1.05);
+  background-position: 100% 50%;
+  box-shadow: 0 20px 44px -12px rgba(168, 85, 247, 0.65);
+}
+
+.hero__cta:active {
+  transform: scale(0.98);
 }
 
 .hero__cta:focus-visible {
@@ -155,7 +173,9 @@
     transition: none;
   }
 
-  .hero__cta:hover {
+  .hero__cta:hover,
+  .hero__cta:active {
     transform: none;
+    will-change: auto;
   }
 }
