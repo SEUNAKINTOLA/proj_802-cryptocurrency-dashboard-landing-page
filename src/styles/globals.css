@@ -1,0 +1,58 @@
+/* =============================================================================
+ * Global Styles — Cryptocurrency Dashboard Landing Page
+ * -----------------------------------------------------------------------------
+ * Page-wide CSS custom properties and base rules. As part of the flat-design
+ * refactor of the hero section, this file intentionally defines SOLID color
+ * variables only — there are no gradient tokens (e.g. --hero-gradient-start /
+ * --hero-gradient-end) and no linear-/radial-gradient references. Every surface
+ * resolves to a single solid color, keeping the dark theme aesthetic clean and
+ * minimalist while preserving WCAG 2.1 AA text contrast.
+ * ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------------
+   * Global solid color palette (flat design — no gradients)
+   * Dark-theme base surfaces plus the brand accent and text tokens. Values
+   * mirror the shared design tokens so the whole page reads as one system.
+   * ------------------------------------------------------------------------- */
+  --color-page-bg: #1c1830;            /* solid dark page backdrop */
+  --color-surface: #2b2640;            /* solid card / section surface */
+  --color-surface-raised: #35304f;     /* solid elevated surface */
+  --color-hero-bg: #2b2640;            /* solid hero background (flat) */
+
+  --color-brand: #a855f7;              /* primary accent / neon purple */
+  --color-brand-strong: #9333ea;       /* deeper solid brand tone (hover/press) */
+  --color-brand-cyan: #06b6d4;         /* secondary accent */
+
+  --color-text-primary: #ffffff;       /* headings & high-emphasis copy */
+  --color-text-secondary: #cbd5e1;     /* body & supporting copy */
+  --color-border: #3f3a5a;             /* solid hairline borders */
+  --color-focus-ring: #ffffff;         /* keyboard focus indicator */
+}
+
+/* Base document rules ------------------------------------------------------- */
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  /* Flat design: a single solid dark background, no gradient. */
+  background-color: var(--color-page-bg);
+  color: var(--color-text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Keyboard focus visibility for interactive elements. */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

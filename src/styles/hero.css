@@ -18,8 +18,8 @@
 @import './design-tokens.css';
 
 /* Layout shell — MOBILE FIRST (base) --------------------------------------- *
- * Vertical stack: content on top, media below. Compact section padding and a
- * gradient tuned for a tall/portrait aspect ratio. */
+ * Vertical stack: content on top, media below. Compact section padding on a
+ * flat, solid dark backdrop. */
 .hero {
   display: grid;
   grid-template-columns: 1fr;
@@ -30,22 +30,10 @@
      supported, falling back to the 100vh above otherwise. */
   min-height: 100svh;
   padding: var(--space-section) var(--space-gutter);
+  /* Flat design: a single solid dark background color replaces the former
+     layered linear/radial gradients. --color-bg-hero (#2B2640) keeps the dark
+     theme aesthetic while preserving text contrast (≥13.6:1 for the headline). */
   background-color: var(--color-bg-hero);
-  /* Portrait-friendly gradient: vertical flow keeps the vivid brand color at
-     the bottom where the media sits, with a dark base preserving text
-     contrast at the top. */
-  background-image:
-    linear-gradient(
-      180deg,
-      rgba(28, 24, 48, 0.94) 0%,
-      rgba(43, 38, 64, 0.85) 55%,
-      rgba(147, 51, 234, 0.3) 100%
-    ),
-    radial-gradient(
-      140% 90% at 50% 0%,
-      rgba(168, 85, 247, 0.22) 0%,
-      transparent 60%
-    );
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   overflow: hidden;
@@ -102,11 +90,12 @@
 }
 
 /* Tier 3 — call to action
- * Interaction polish: a subtly shifting gradient fill, a lift-and-grow on hover
- * (scale 1.05), and a tactile press (scale 0.98) on active. A single
- * `transition: all 250ms ease-out` keeps every interactive state moving in
- * sync. On mobile the button spans the full width for an easy tap; from tablet
- * up it shrinks to its intrinsic content width.
+ * Interaction polish: a flat, solid fill with a lift-and-grow on hover
+ * (scale 1.05), and a tactile press (scale 0.98) on active. On hover the fill
+ * deepens to the stronger brand tone (a solid color swap, not a gradient). A
+ * single `transition: all 250ms ease-out` keeps every interactive state moving
+ * in sync. On mobile the button spans the full width for an easy tap; from
+ * tablet up it shrinks to its intrinsic content width.
  *
  * Accessibility: min-height/min-width of 44px plus generous padding guarantee a
  * ≥44×44px touch target (WCAG 2.5.5). */
@@ -122,17 +111,9 @@
   padding: var(--space-sm) var(--space-xl);
   border: 0;
   border-radius: var(--radius-pill);
-  /* #FFFFFF on #A855F7 ≈ 3.4:1 — AA for large/bold ≥18.66px text. The gradient
-     rides between --color-primary and --color-primary-strong (both ≥ AA large
-     against white), so contrast holds across the shift. */
+  /* Flat design: a solid brand fill replaces the former linear-gradient.
+     #FFFFFF on #A855F7 ≈ 3.4:1 — AA for large/bold ≥18.66px text. */
   background-color: var(--color-primary);
-  background-image: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-primary-strong) 100%
-  );
-  background-size: 150% 150%;
-  background-position: 0% 50%;
   color: var(--color-cta-text);
   font-family: inherit;
   font-size: var(--font-size-cta-clamp);
@@ -147,7 +128,8 @@
   /* Promote to its own compositor layer only while actively animating. */
   will-change: transform;
   transform: scale(1.05);
-  background-position: 100% 50%;
+  /* Deepen to the stronger solid brand tone on hover (no gradient shift). */
+  background-color: var(--color-primary-strong);
   box-shadow: 0 20px 44px -12px rgba(168, 85, 247, 0.65);
 }
 
@@ -209,26 +191,12 @@
 /* =============================================================================
  * DESKTOP — ≥1024px
  * Switch from a vertical stack to a two-column split-screen: content left,
- * media right. Rebalance the gradient for a landscape aspect ratio.
+ * media right. The flat solid background from the base rule carries through.
  * ========================================================================== */
 @media (min-width: 1024px) {
   .hero {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
     align-items: center;
-    /* Landscape gradient: diagonal flow pushes the brand color toward the
-       media side (right/bottom) while text on the left stays high-contrast. */
-    background-image:
-      linear-gradient(
-        135deg,
-        rgba(28, 24, 48, 0.94) 0%,
-        rgba(43, 38, 64, 0.84) 55%,
-        rgba(147, 51, 234, 0.3) 100%
-      ),
-      radial-gradient(
-        120% 120% at 15% 20%,
-        rgba(168, 85, 247, 0.22) 0%,
-        transparent 60%
-      );
   }
 
   .hero__content {

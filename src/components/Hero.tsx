@@ -23,6 +23,11 @@
 // and the hero imagery is served through a <picture> element so mobile devices
 // download a smaller asset than desktop. Shared responsive helpers live in
 // `responsive-utils.css`.
+// ARVAD: Flat-design change confirmed — this component carries no gradient
+// background utilities (e.g. bg-gradient-to-r / bg-gradient-to-b) and no inline
+// gradient styles. All hero styling is delegated to the semantic classes in
+// hero.css, where the former linear/radial gradients were replaced with solid
+// color backgrounds. Text contrast is preserved via the design tokens.
 import { useEffect, useState } from 'react';
 import '../styles/animations.css';
 import '../styles/hero.css';
